@@ -1,13 +1,25 @@
 {{ define "main" }}
+{{ if eq .Section "work" }}
+    {{ partial "work-single-content.html" . }}
+{{ else if eq .Section "projects" }}
+    {{ partial "projects-single-content.html" . }}
+{{ else }}
 <div class="container py-5">
     <h1 class="text-center mb-4">{{ .Title }}</h1>
-    
     {{ with .Params.description }}
     <p class="text-center text-muted mb-4">{{ . }}</p>
     {{ end }}
-
     <div class="content">
         {{ .Content }}
     </div>
 </div>
+{{ end }}
+{{ end }}
+
+{{ define "head" }}
+{{ if eq .Section "work" }}
+    {{ partial "work-single-head.html" . }}
+{{ else if eq .Section "projects" }}
+    {{ partial "projects-single-head.html" . }}
+{{ end }}
 {{ end }}

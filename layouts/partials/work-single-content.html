@@ -1,0 +1,65 @@
+<div class="main-container">
+    <header class="header">
+        <a class="logo" href="/">
+            <svg viewBox="0 0 250 250">
+                <path d="m143,39.5c-18,0-18,18-18,18,0,0,0-18-18-18H22c-2.76,0-5,2.24-5,5v143c0,2.76,2.24,5,5,5h76c7.2,0,8.64,11.52,8.93,16.13.07,1.05.95,1.87,2,1.87h32.14c1.06,0,1.94-.82,2-1.87.29-4.61,1.73-16.13,8.93-16.13h76c2.76,0,5-2.24,5-5V44.5c0-2.76-2.24-5-5-5h-85Zm63,123.5c0,1.38-1.12,2.5-2.5,2.5h-60.5c-18,0-18,18-18,18,0,0,0-18-18-18h-60.5c-1.38,0-2.5-1.12-2.5-2.5v-94c0-1.38,1.12-2.5,2.5-2.5h51.5c7.2,0,8.64,11.52,8.93,16.13.07,1.05.95,1.87,2,1.87h32.14c1.06,0,1.94-.82,2-1.87.29-4.61,1.73-16.13,8.93-16.13h51.5c1.38,0,2.5,1.12,2.5,2.5v94Z"/>
+            </svg>
+        </a>
+        <nav class="breadcrumb">
+            <a href="/">home</a><span>/</span><a href="/work/">work</a><span>/</span>{{ .Title | lower }}
+        </nav>
+    </header>
+
+    <div class="content-area">
+        <h1>{{ .Title }}</h1>
+        <div class="meta">{{ with .Params.role }}{{ . }}{{ end }}{{ with .Params.period }} · {{ . }}{{ end }}</div>
+
+        {{ with .Params.images }}
+        {{ $count := len . }}
+        {{ $cols := "cols-2" }}
+        {{ if eq $count 1 }}{{ $cols = "cols-1" }}{{ else if eq $count 2 }}{{ $cols = "cols-2" }}{{ else if eq $count 3 }}{{ $cols = "cols-3" }}{{ else if eq $count 4 }}{{ $cols = "cols-4" }}{{ else if eq $count 5 }}{{ $cols = "cols-5" }}{{ else if eq $count 6 }}{{ $cols = "cols-6" }}{{ else if eq $count 7 }}{{ $cols = "cols-7" }}{{ else if ge $count 8 }}{{ $cols = "cols-8" }}{{ end }}
+        <div class="image-collage {{ $cols }}">
+            {{ range . }}
+            <figure><img src="{{ . }}" alt="{{ $.Title }}"></figure>
+            {{ end }}
+        </div>
+        {{ else }}
+        {{ with .Params.image }}
+        <figure class="featured-image">
+            <img src="{{ . }}" alt="{{ $.Title }}">
+        </figure>
+        {{ end }}
+        {{ end }}
+
+        {{ with .Params.logo }}
+        <figure class="logo-image">
+            <img src="{{ . }}" alt="{{ $.Title }}">
+        </figure>
+        {{ end }}
+
+        <article class="article">
+            {{ .Content }}
+        </article>
+    </div>
+
+    <nav class="back-nav">
+        <a href="/work/" class="back-link">back to work</a>
+    </nav>
+</div>
+
+<div class="lightbox" id="lightbox">
+    <span class="lightbox-close">&times;</span>
+    <img src="" alt="">
+</div>
+
+<script>
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = lightbox.querySelector('img');
+    document.querySelectorAll('.image-collage img, .featured-image img').forEach(img => {
+        img.addEventListener('click', () => {
+            lightboxImg.src = img.src;
+            lightbox.classList.add('active');
+        });
+    });
+    lightbox.addEventListener('click', () => lightbox.classList.remove('active'));
+</script>

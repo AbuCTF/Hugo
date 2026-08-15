@@ -10,7 +10,6 @@
     
     <style>
         :root {
-            /* Light theme */
             --text-primary: #1a1a1a;
             --text-secondary: #4a5568;
             --text-tertiary: #718096;
@@ -29,7 +28,6 @@
         }
 
         [data-theme="dark"] {
-            /* Dark theme */
             --text-primary: #f7fafc;
             --text-secondary: #cbd5e0;
             --text-tertiary: #a0aec0;
@@ -70,7 +68,6 @@
             position: relative;
         }
 
-        /* Subtle scanlines effect for retro feel */
         body::before {
             content: '';
             position: fixed;
@@ -85,7 +82,6 @@
             opacity: 0.3;
         }
 
-        /* Main container */
         .main-container {
             display: flex;
             flex-direction: column;
@@ -97,7 +93,6 @@
             z-index: 2;
         }
 
-        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -127,7 +122,6 @@
             transform: scale(1.05);
         }
 
-        /* Main content area */
         .content-area {
             display: flex;
             flex-direction: column;
@@ -155,7 +149,6 @@
             text-transform: none;
         }
 
-        /* Retro terminal cursor effect */
         .version-badge::after {
             content: '_';
             animation: blink 1s infinite;
@@ -194,7 +187,6 @@
             position: relative;
         }
 
-        /* Compact navigation grid */
         .nav-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -223,7 +215,6 @@
             backdrop-filter: blur(10px);
         }
 
-        /* Subtle highlight on hover */
         .nav-item::before {
             content: '';
             position: absolute;
@@ -268,7 +259,6 @@
             font-weight: 300;
         }
 
-        /* Mobile-first responsive design */
         @media (max-width: 480px) {
             .main-container {
                 padding: 0 0.8rem;
@@ -326,7 +316,6 @@
             }
         }
 
-        /* Tablet adjustments */
         @media (min-width: 481px) and (max-width: 768px) {
             .main-container {
                 max-width: 600px;
@@ -356,7 +345,6 @@
             }
         }
 
-        /* Desktop adjustments */
         @media (min-width: 769px) {
             .nav-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -372,7 +360,6 @@
             }
         }
 
-        /* Large desktop */
         @media (min-width: 1200px) {
             .main-container {
                 max-width: 1000px;
@@ -383,14 +370,12 @@
             }
         }
 
-        /* Enhanced focus styles for accessibility */
         .keyboard-navigation *:focus {
             outline: 2px solid var(--accent-primary);
             outline-offset: 2px;
             border-radius: 2px;
         }
 
-        /* High contrast mode support */
         @media (prefers-contrast: high) {
             .nav-item {
                 border-width: 2px;
@@ -401,7 +386,6 @@
             }
         }
 
-        /* Reduced motion support */
         @media (prefers-reduced-motion: reduce) {
             * {
                 animation-duration: 0.01ms !important;
@@ -418,7 +402,6 @@
             }
         }
 
-        /* Landscape mobile adjustments */
         @media (max-height: 500px) and (orientation: landscape) {
             .content-area {
                 padding: 0.5rem 1rem;
@@ -461,7 +444,6 @@
 
 {{ define "main" }}
     <div class="main-container">
-        <!-- Header -->
         <header class="header">
             <a class="logo" href="/" aria-label="Home">
                 <svg viewBox="0 0 250 250">
@@ -470,7 +452,6 @@
             </a>
         </header>
 
-        <!-- Main content area -->
         <div class="content-area">
             <span class="version-badge">v2026</span>
             <h5 class="hero-title">私は Abu</h5>
@@ -479,7 +460,6 @@
                 Documenting the journey through competitive CTFs, security research, and innovative project development.
             </p>
 
-            <!-- Navigation grid -->
             <div class="nav-grid">
                 <a href="/docs" class="nav-item">
                     <div class="nav-item-title">Blog</div>
@@ -498,11 +478,9 @@
     </div>
 
     <script>
-        // Force dark theme only
         const html = document.documentElement;
         html.setAttribute('data-theme', 'dark');
 
-        // Enhanced keyboard navigation
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Tab') {
                 document.body.classList.add('keyboard-navigation');
@@ -513,14 +491,12 @@
             document.body.classList.remove('keyboard-navigation');
         });
 
-        // Enhanced accessibility
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 document.activeElement.blur();
             }
         });
 
-        // Prevent any scrolling
         document.addEventListener('wheel', (e) => {
             e.preventDefault();
         }, { passive: false });
@@ -533,12 +509,10 @@
             }
         });
 
-        // Touch device optimization
         if ('ontouchstart' in window) {
             document.body.classList.add('touch-device');
         }
 
-        // Responsive font loading optimization
         if ('fonts' in document) {
             document.fonts.ready.then(() => {
                 document.body.classList.add('fonts-loaded');

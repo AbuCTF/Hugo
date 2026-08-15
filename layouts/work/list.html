@@ -16,7 +16,6 @@
     
     <style>
         :root {
-            /* Dark theme variables */
             --text-primary: #f7fafc;
             --text-secondary: #cbd5e0;
             --text-tertiary: #a0aec0;
@@ -57,7 +56,6 @@
             position: relative;
         }
 
-        /* Subtle scanlines effect for retro feel */
         body::before {
             content: '';
             position: fixed;
@@ -72,7 +70,6 @@
             opacity: 0.3;
         }
 
-        /* Main container */
         .main-container {
             min-height: 100vh;
             max-width: 1200px;
@@ -84,7 +81,6 @@
             flex-direction: column;
         }
 
-        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -136,7 +132,6 @@
             color: var(--text-quaternary);
         }
 
-        /* Main content area */
         .content-area {
             flex: 1;
             padding: 2rem 1rem 1rem 1rem;
@@ -164,7 +159,6 @@
             text-transform: none;
         }
 
-        /* Retro terminal cursor effect */
         .version-badge::after {
             content: '_';
             animation: blink 1s infinite;
@@ -197,7 +191,6 @@
             max-width: 600px;
         }
 
-        /* Work grid */
         .work-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -219,7 +212,6 @@
             backdrop-filter: blur(10px);
         }
 
-        /* Subtle highlight on hover */
         .work-item::before {
             content: '';
             position: absolute;
@@ -298,7 +290,6 @@
             font-weight: 400;
         }
 
-        /* Back navigation */
         .back-nav {
             margin-top: auto;
             padding: 1.5rem 1rem;
@@ -331,7 +322,6 @@
             transform: translateX(-2px);
         }
 
-        /* Mobile-first responsive design */
         @media (max-width: 480px) {
             .main-container {
                 padding: 0 0.8rem;
@@ -398,7 +388,6 @@
             }
         }
 
-        /* Tablet adjustments */
         @media (min-width: 481px) and (max-width: 768px) {
             .main-container {
                 max-width: 700px;
@@ -423,7 +412,6 @@
             }
         }
 
-        /* Desktop adjustments */
         @media (min-width: 769px) {
             .content-area {
                 padding: 2rem 1rem;
@@ -434,21 +422,18 @@
             }
         }
 
-        /* Large desktop */
         @media (min-width: 1200px) {
             .main-container {
                 max-width: 1000px;
             }
         }
 
-        /* Enhanced focus styles for accessibility */
         .keyboard-navigation *:focus {
             outline: 2px solid var(--accent-primary);
             outline-offset: 2px;
             border-radius: 2px;
         }
 
-        /* High contrast mode support */
         @media (prefers-contrast: high) {
             .work-item {
                 border-width: 2px;
@@ -459,7 +444,6 @@
             }
         }
 
-        /* Reduced motion support */
         @media (prefers-reduced-motion: reduce) {
             * {
                 animation-duration: 0.01ms !important;
@@ -480,7 +464,6 @@
 
 <body data-theme="dark">
     <div class="main-container">
-        <!-- Header -->
         <header class="header">
             <a class="logo" href="/" aria-label="Home">
                 <svg viewBox="0 0 250 250">
@@ -495,88 +478,43 @@
             </nav>
         </header>
 
-        <!-- Main content area -->
         <div class="content-area">
             <div class="page-header">
                 <span class="version-badge">professional</span>
                 <h1 class="page-title">work & experience</h1>
                 <p class="page-subtitle">
-                    A curated collection of professional engagements, consulting ventures, and collaborative experiences that have shaped my journey through technology and cybersecurity domains.
+                    Security work, CTF teams, and the occasional ML experiment. Here's where I've been breaking and building things.
                 </p>
             </div>
 
-            <!-- Work grid -->
             <div class="work-grid">
-                <a href="/work/centinals/" class="work-item">
+                {{ range where .Pages "Params.draft" "!=" true }}
+                <a href="{{ .Permalink }}" class="work-item">
                     <div class="work-title">
-                        <span>Centinals</span>
-                        <span class="work-company">Technical Head</span>
+                        <span>{{ .Title }}</span>
+                        <span class="work-company">{{ .Params.role }}</span>
                     </div>
                     <div class="work-description">
-                        Oversaw technical strategy and development for Centinals, fostering innovation and collaboration among members.
+                        {{ .Params.description }}
                     </div>
                     <div class="work-details">
-                        <span class="work-period">2023 - 2024</span>
-                        <span class="work-type">hybrid</span>
+                        <span class="work-period">{{ .Params.period }}</span>
+                        {{ with .Params.employment }}<span class="work-type">{{ . | lower }}</span>{{ end }}
                     </div>
                 </a>
-
-                <a href="/work/h7tex/" class="work-item">
-                    <div class="work-title">
-                        <span>H7Tex</span>
-                        <span class="work-company">Founder</span>
-                    </div>
-                    <div class="work-description">
-                        Upcoming CTF Guild
-                    </div>
-                    <div class="work-details">
-                        <span class="work-period">2023 - Present</span>
-                        <span class="work-type">full-time</span>
-                    </div>
-                </a>
-
-                <a href="/work/inforill/" class="work-item">
-                    <div class="work-title">
-                        <span>Inforill</span>
-                        <span class="work-company">ML Engineer</span>
-                    </div>
-                    <div class="work-description">
-                        ML/RL Models for Atari games + Rive Animations
-                    </div>
-                    <div class="work-details">
-                        <span class="work-period">2022 - 2023</span>
-                        <span class="work-type">internship</span>
-                    </div>
-                </a>
-
-                <a href="/work/proserv/" class="work-item">
-                    <div class="work-title">
-                        <span>Proserv</span>
-                        <span class="work-company">DevOps Lead</span>
-                    </div>
-                    <div class="work-description">
-                        MQTT broker setup and maintenance for IoT solutions.
-                    </div>
-                    <div class="work-details">
-                        <span class="work-period">2023 - 2024</span>
-                        <span class="work-type">contract</span>
-                    </div>
-                </a>
+                {{ end }}
             </div>
         </div>
 
-        <!-- Back navigation -->
         <nav class="back-nav">
             <a href="/" class="back-link">back to home</a>
         </nav>
     </div>
 
     <script>
-        // Force dark theme only
         const html = document.documentElement;
         html.setAttribute('data-theme', 'dark');
 
-        // Enhanced keyboard navigation
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Tab') {
                 document.body.classList.add('keyboard-navigation');
@@ -587,26 +525,22 @@
             document.body.classList.remove('keyboard-navigation');
         });
 
-        // Enhanced accessibility
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 document.activeElement.blur();
             }
         });
 
-        // Touch device optimization
         if ('ontouchstart' in window) {
             document.body.classList.add('touch-device');
         }
 
-        // Responsive font loading optimization
         if ('fonts' in document) {
             document.fonts.ready.then(() => {
                 document.body.classList.add('fonts-loaded');
             });
         }
 
-        // Subtle stagger animation for work items
         const workItems = document.querySelectorAll('.work-item');
         workItems.forEach((item, index) => {
             item.style.opacity = '0';

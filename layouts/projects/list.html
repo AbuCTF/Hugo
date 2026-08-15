@@ -16,7 +16,6 @@
     
     <style>
         :root {
-            /* Dark theme variables */
             --text-primary: #f7fafc;
             --text-secondary: #cbd5e0;
             --text-tertiary: #a0aec0;
@@ -57,7 +56,6 @@
             position: relative;
         }
 
-        /* Subtle scanlines effect for retro feel */
         body::before {
             content: '';
             position: fixed;
@@ -72,7 +70,6 @@
             opacity: 0.3;
         }
 
-        /* Main container */
         .main-container {
             min-height: 100vh;
             max-width: 1200px;
@@ -84,7 +81,6 @@
             flex-direction: column;
         }
 
-        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -136,7 +132,6 @@
             color: var(--text-quaternary);
         }
 
-        /* Main content area */
         .content-area {
             flex: 1;
             padding: 2rem 1rem 1rem 1rem;
@@ -164,7 +159,6 @@
             text-transform: none;
         }
 
-        /* Retro terminal cursor effect */
         .version-badge::after {
             content: '_';
             animation: blink 1s infinite;
@@ -197,7 +191,6 @@
             max-width: 600px;
         }
 
-        /* Projects grid */
         .projects-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -219,7 +212,6 @@
             backdrop-filter: blur(10px);
         }
 
-        /* Subtle highlight on hover */
         .project-item::before {
             content: '';
             position: absolute;
@@ -298,7 +290,6 @@
             font-weight: 400;
         }
 
-        /* Back navigation */
         .back-nav {
             margin-top: auto;
             padding: 1.5rem 1rem;
@@ -331,7 +322,6 @@
             transform: translateX(-2px);
         }
 
-        /* Mobile-first responsive design */
         @media (max-width: 480px) {
             .main-container {
                 padding: 0 0.8rem;
@@ -398,7 +388,6 @@
             }
         }
 
-        /* Tablet adjustments */
         @media (min-width: 481px) and (max-width: 768px) {
             .main-container {
                 max-width: 700px;
@@ -423,7 +412,6 @@
             }
         }
 
-        /* Desktop adjustments */
         @media (min-width: 769px) {
             .content-area {
                 padding: 2rem 1rem;
@@ -434,21 +422,18 @@
             }
         }
 
-        /* Large desktop */
         @media (min-width: 1200px) {
             .main-container {
                 max-width: 1000px;
             }
         }
 
-        /* Enhanced focus styles for accessibility */
         .keyboard-navigation *:focus {
             outline: 2px solid var(--accent-primary);
             outline-offset: 2px;
             border-radius: 2px;
         }
 
-        /* High contrast mode support */
         @media (prefers-contrast: high) {
             .project-item {
                 border-width: 2px;
@@ -459,7 +444,6 @@
             }
         }
 
-        /* Reduced motion support */
         @media (prefers-reduced-motion: reduce) {
             * {
                 animation-duration: 0.01ms !important;
@@ -480,7 +464,6 @@
 
 <body data-theme="dark">
     <div class="main-container">
-        <!-- Header -->
         <header class="header">
             <a class="logo" href="/" aria-label="Home">
                 <svg viewBox="0 0 250 250">
@@ -495,158 +478,43 @@
             </nav>
         </header>
 
-        <!-- Main content area -->
         <div class="content-area">
             <div class="page-header">
                 <span class="version-badge">development</span>
                 <h1 class="page-title">projects & builds</h1>
                 <p class="page-subtitle">
-                    A collection of personal projects, experimental builds, and technical explorations outside the realm of competitive CTFs. Each represents a journey through different aspects of technology and development.
+                    Tools I've built, problems I've solved, and experiments that went somewhere. Code speaks louder than words.
                 </p>
             </div>
 
-            <!-- Projects grid -->
             <div class="projects-grid">
-                <a href="/projects/localelookup/" class="project-item">
+                {{ range where .Pages "Params.draft" "!=" true }}
+                <a href="{{ .Permalink }}" class="project-item">
                     <div class="project-title">
-                        <span>LocaleLookup</span>
-                        <span class="project-category">Development Tools</span>
+                        <span>{{ .Title }}</span>
+                        <span class="project-category">{{ .Params.category }}</span>
                     </div>
                     <div class="project-description">
-                        A sophisticated locale and internationalization lookup tool for developers working with multi-language applications.
+                        {{ .Params.description }}
                     </div>
                     <div class="project-details">
-                        <span class="project-status">active</span>
-                        <span class="project-type">utility</span>
+                        {{ with .Params.status }}<span class="project-status">{{ . }}</span>{{ end }}
+                        {{ with .Params.type }}<span class="project-type">{{ . }}</span>{{ end }}
                     </div>
                 </a>
-
-                <a href="/projects/graphnet/" class="project-item">
-                    <div class="project-title">
-                        <span>GraphNet</span>
-                        <span class="project-category">Visualization</span>
-                    </div>
-                    <div class="project-description">
-                        Network visualization and analysis platform with interactive graph rendering capabilities for complex data relationships.
-                    </div>
-                    <div class="project-details">
-                        <span class="project-status">beta</span>
-                        <span class="project-type">platform</span>
-                    </div>
-                </a>
-
-                <a href="/projects/classflow/" class="project-item">
-                    <div class="project-title">
-                        <span>ClassFlow</span>
-                        <span class="project-category">Education Tech</span>
-                    </div>
-                    <div class="project-description">
-                        Streamlined classroom management system with modern UI/UX design focusing on educator and student experience.
-                    </div>
-                    <div class="project-details">
-                        <span class="project-status">deployed</span>
-                        <span class="project-type">web-app</span>
-                    </div>
-                </a>
-
-                <a href="/projects/cryptoshield/" class="project-item">
-                    <div class="project-title">
-                        <span>CryptoShield</span>
-                        <span class="project-category">Security</span>
-                    </div>
-                    <div class="project-description">
-                        Advanced cryptographic protection toolkit for secure data handling with multiple encryption algorithm support.
-                    </div>
-                    <div class="project-details">
-                        <span class="project-status">stable</span>
-                        <span class="project-type">library</span>
-                    </div>
-                </a>
-
-                <a href="/projects/sbc/" class="project-item">
-                    <div class="project-title">
-                        <span>SBC</span>
-                        <span class="project-category">Hardware</span>
-                    </div>
-                    <div class="project-description">
-                        Single Board Computer utilities and development environment for embedded systems and IoT applications.
-                    </div>
-                    <div class="project-details">
-                        <span class="project-status">experimental</span>
-                        <span class="project-type">hardware</span>
-                    </div>
-                </a>
-
-                <a href="/projects/mfauth/" class="project-item">
-                    <div class="project-title">
-                        <span>MFAuth</span>
-                        <span class="project-category">Authentication</span>
-                    </div>
-                    <div class="project-description">
-                        Multi-factor authentication system with enhanced security protocols and seamless user integration capabilities.
-                    </div>
-                    <div class="project-details">
-                        <span class="project-status">production</span>
-                        <span class="project-type">service</span>
-                    </div>
-                </a>
-
-                <a href="/projects/nodecrypt/" class="project-item">
-                    <div class="project-title">
-                        <span>NodeCrypt</span>
-                        <span class="project-category">Cryptography</span>
-                    </div>
-                    <div class="project-description">
-                        Node.js encryption library with modern cryptographic algorithms and developer-friendly API design.
-                    </div>
-                    <div class="project-details">
-                        <span class="project-status">maintained</span>
-                        <span class="project-type">npm-package</span>
-                    </div>
-                </a>
-
-                <a href="/projects/puzzlvision/" class="project-item">
-                    <div class="project-title">
-                        <span>PuzzlVision</span>
-                        <span class="project-category">Computer Vision</span>
-                    </div>
-                    <div class="project-description">
-                        Computer vision toolkit for puzzle solving and pattern recognition using machine learning algorithms.
-                    </div>
-                    <div class="project-details">
-                        <span class="project-status">research</span>
-                        <span class="project-type">ai-tool</span>
-                    </div>
-                </a>
-
-                <a href="/projects/hashigo/" class="project-item">
-                    <div class="project-title">
-                        <span>Hashigo</span>
-                        <span class="project-category">Cryptographic Tools</span>
-                    </div>
-                    <div class="project-description">
-                        Hash generation and verification utility with multiple algorithm support and performance optimization.
-                    </div>
-                    <div class="project-details">
-                        <span class="project-status">stable</span>
-                        <span class="project-type">cli-tool</span>
-                    </div>
-                </a>
+                {{ end }}
             </div>
         </div>
 
-        <!-- Back navigation -->
         <nav class="back-nav">
             <a href="/" class="back-link">back to home</a>
         </nav>
     </div>
 
     <script>
-        // Force dark theme only
         const html = document.documentElement;
         html.setAttribute('data-theme', 'dark');
 
-        // Enhanced keyboard navigation
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Tab') {
                 document.body.classList.add('keyboard-navigation');
@@ -657,26 +525,22 @@
             document.body.classList.remove('keyboard-navigation');
         });
 
-        // Enhanced accessibility
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 document.activeElement.blur();
             }
         });
 
-        // Touch device optimization
         if ('ontouchstart' in window) {
             document.body.classList.add('touch-device');
         }
 
-        // Responsive font loading optimization
         if ('fonts' in document) {
             document.fonts.ready.then(() => {
                 document.body.classList.add('fonts-loaded');
             });
         }
 
-        // Subtle stagger animation for project items
         const projectItems = document.querySelectorAll('.project-item');
         projectItems.forEach((item, index) => {
             item.style.opacity = '0';

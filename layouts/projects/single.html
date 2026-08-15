@@ -1,90 +1,289 @@
-<main>
-    <section class="hero">
-        <div class="hero-content">
-            <h1>{{ .Title }}</h1>
-            {{ with .Params.description }}
-            <p>{{ . }}</p>
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <title>{{ .Title }} - Abu's Cyber Chronicle</title>
+    <meta name="robots" content="index, follow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ with .Params.description }}{{ . }}{{ else }}{{ .Title }} - Project{{ end }}" />
+    <meta name="author" content="Abu Rahman" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --text-primary: #f7fafc;
+            --text-secondary: #cbd5e0;
+            --text-tertiary: #a0aec0;
+            --text-quaternary: #718096;
+            --bg-primary: #0a0e12;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #1e1e1e;
+            --bg-card-alt: #252525;
+            --accent-primary: #ffffff;
+            --accent-link: #60a5fa;
+            --border-light: #2d2d2d;
+            --border-medium: #404040;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .logo { text-decoration: none; }
+        .logo svg { width: 24px; height: 24px; fill: var(--accent-primary); }
+        .nav-breadcrumb {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+        .nav-breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .nav-breadcrumb a:hover { color: var(--accent-primary); }
+        .nav-breadcrumb span { margin: 0 0.5rem; color: var(--text-quaternary); }
+        .content-area { flex: 1; padding: 2rem 0; }
+        .hero { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-light); }
+        .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+        .hero-badge {
+            display: inline-block;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .hero-badge.status-active { border-color: #22c55e40; color: #4ade80; }
+        .hero-badge.status-stable { border-color: #3b82f640; color: #60a5fa; }
+        .hero-badge.status-complete { border-color: #3b82f640; color: #60a5fa; }
+        .hero-badge.status-archived { border-color: #71717a40; color: #a1a1aa; }
+        .hero-title {
+            font-size: 2.2rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .hero-tagline { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
+        .hero-description { font-size: 1rem; color: var(--text-secondary); line-height: 1.7; max-width: 700px; margin-bottom: 1.5rem; }
+        .hero-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .meta-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary); }
+        .meta-item svg { width: 16px; height: 16px; fill: var(--text-quaternary); }
+        .stats { display: flex; gap: 2rem; margin: 1.5rem 0; padding: 1rem 0; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); }
+        .stat { display: flex; flex-direction: column; }
+        .stat-value { font-size: 1.5rem; font-weight: 500; font-family: 'JetBrains Mono', monospace; }
+        .stat-label { font-size: 0.7rem; color: var(--text-quaternary); text-transform: uppercase; letter-spacing: 0.1em; }
+        .tech-stack { margin: 1.5rem 0; }
+        .tech-label { font-size: 0.7rem; color: var(--text-quaternary); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
+        .tech-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .tech-tag { background: var(--bg-card); border: 1px solid var(--border-light); color: var(--text-secondary); padding: 0.3rem 0.7rem; border-radius: 4px; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; }
+        .links { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.5rem; }
+        .link-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-light); color: var(--text-secondary); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; text-decoration: none; transition: all 0.2s ease; }
+        .link-btn:hover { background: var(--bg-card-alt); border-color: var(--border-medium); color: var(--text-primary); }
+        .link-btn.primary { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+        .link-btn.primary:hover { background: var(--text-secondary); }
+        .link-btn svg { width: 16px; height: 16px; fill: currentColor; }
+        .article-content { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 8px; padding: 2rem; margin-bottom: 2rem; }
+        .article-content h2 { font-size: 1.3rem; font-weight: 500; color: var(--text-primary); margin: 2rem 0 1rem 0; font-family: 'JetBrains Mono', monospace; }
+        .article-content h2:first-child { margin-top: 0; }
+        .article-content h3 { font-size: 1.1rem; font-weight: 500; color: var(--text-primary); margin: 1.5rem 0 0.8rem 0; }
+        .article-content p { color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.8; }
+        .article-content ul, .article-content ol { color: var(--text-secondary); margin: 1rem 0; padding-left: 1.5rem; }
+        .article-content li { margin-bottom: 0.6rem; line-height: 1.7; }
+        .article-content a { color: var(--accent-link); text-decoration: none; }
+        .article-content a:hover { text-decoration: underline; }
+        .article-content strong { color: var(--text-primary); }
+        .article-content code { background: var(--bg-primary); padding: 0.15rem 0.4rem; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: var(--text-secondary); }
+        .article-content pre { background: var(--bg-primary); border: 1px solid var(--border-light); border-radius: 6px; padding: 1rem; overflow-x: auto; margin: 1rem 0; }
+        .article-content pre code { background: none; padding: 0; }
+
+        .logo-image { margin-bottom: 1.5rem; text-align: left; }
+        .logo-image img { max-width: 140px; max-height: 50px; object-fit: contain; border-radius: 4px; }
+        .featured-image { margin-bottom: 2rem; }
+        .featured-image img { max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; cursor: zoom-in; transition: transform 0.2s; }
+        .featured-image img:hover { transform: scale(1.02); }
+        .image-collage { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-bottom: 2rem; }
+        .image-collage figure { margin: 0; width: calc(25% - 0.375rem); aspect-ratio: 1; border-radius: 4px; overflow: hidden; }
+        .image-collage img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 4px; }
+        @media (max-width: 600px) {
+            .image-collage figure { width: calc(50% - 0.25rem); }
+        }
+
+        .section-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+        .section-card h2 { font-size: 1rem; font-weight: 500; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; margin: 0 0 1rem 0; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-light); }
+        .section-card h3 { font-size: 0.95rem; font-weight: 500; color: var(--text-primary); margin: 1.25rem 0 0.6rem 0; }
+        .section-card p { color: var(--text-secondary); margin-bottom: 0.75rem; line-height: 1.7; font-size: 0.95rem; }
+        .section-card ul, .section-card ol { color: var(--text-secondary); margin: 0.75rem 0; padding-left: 1.25rem; }
+        .section-card li { margin-bottom: 0.4rem; line-height: 1.6; font-size: 0.95rem; }
+        .section-card a { color: var(--accent-link); text-decoration: none; }
+        .section-card a:hover { text-decoration: underline; }
+        .section-card strong { color: var(--text-primary); font-weight: 500; }
+        .section-card code { background: var(--bg-primary); padding: 0.15rem 0.4rem; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: var(--text-secondary); }
+
+        .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; cursor: zoom-out; }
+        .lightbox.active { display: flex; align-items: center; justify-content: center; }
+        .lightbox img { max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px; }
+        .lightbox-close { position: absolute; top: 1rem; right: 1.5rem; color: #fff; font-size: 2rem; cursor: pointer; opacity: 0.7; }
+        .lightbox-close:hover { opacity: 1; }
+        .image-collage img, .featured-image img { cursor: zoom-in; transition: transform 0.2s; }
+        .image-collage img:hover, .featured-image img:hover { transform: scale(1.02); }
+
+        .back-nav { margin-top: auto; padding: 1.5rem 0; border-top: 1px solid var(--border-light); }
+        .back-link { display: inline-flex; align-items: center; color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; }
+        .back-link:hover { color: var(--accent-primary); }
+        .back-link::before { content: '←'; margin-right: 0.5rem; }
+        @media (max-width: 600px) {
+            .header { flex-direction: column; gap: 0.8rem; align-items: flex-start; }
+            .hero-title { font-size: 1.8rem; }
+            .hero-meta { flex-direction: column; gap: 0.8rem; }
+            .stats { gap: 1.5rem; }
+            .article-content { padding: 1.2rem; }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+<div class="main-container">
+    <header class="header">
+        <a class="logo" href="/" aria-label="Home">
+            <svg viewBox="0 0 250 250"><path d="m143,39.5c-18,0-18,18-18,18,0,0,0-18-18-18H22c-2.76,0-5,2.24-5,5v143c0,2.76,2.24,5,5,5h76c7.2,0,8.64,11.52,8.93,16.13.07,1.05.95,1.87,2,1.87h32.14c1.06,0,1.94-.82,2-1.87.29-4.61,1.73-16.13,8.93-16.13h76c2.76,0,5-2.24,5-5V44.5c0-2.76-2.24-5-5-5h-85Zm63,123.5c0,1.38-1.12,2.5-2.5,2.5h-60.5c-18,0-18,18-18,18,0,0,0-18-18-18h-60.5c-1.38,0-2.5-1.12-2.5-2.5v-94c0-1.38,1.12-2.5,2.5-2.5h51.5c7.2,0,8.64,11.52,8.93,16.13.07,1.05.95,1.87,2,1.87h32.14c1.06,0,1.94-.82,2-1.87.29-4.61,1.73-16.13,8.93-16.13h51.5c1.38,0,2.5,1.12,2.5,2.5v94Z"/></svg>
+        </a>
+        <nav class="nav-breadcrumb">
+            <a href="/">home</a><span>/</span><a href="/projects/">projects</a><span>/</span><span>{{ .Title | lower }}</span>
+        </nav>
+    </header>
+
+    <div class="content-area">
+        <section class="hero">
+            <div class="hero-badges">
+                {{ with .Params.category }}<span class="hero-badge">{{ . }}</span>{{ end }}
+                {{ with .Params.status }}<span class="hero-badge status-{{ . }}">{{ . }}</span>{{ end }}
+            </div>
+
+            <h1 class="hero-title">{{ .Title }}</h1>
+            {{ with .Params.tagline }}<p class="hero-tagline">{{ . }}</p>{{ end }}
+            {{ with .Params.description }}<p class="hero-description">{{ . }}</p>{{ end }}
+
+            <div class="hero-meta">
+                {{ with .Params.language }}
+                <div class="meta-item">
+                    <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                    <span>{{ . }}</span>
+                </div>
+                {{ end }}
+            </div>
+
+            {{ if or .Params.stars .Params.forks }}
+            <div class="stats">
+                {{ with .Params.stars }}<div class="stat"><span class="stat-value">{{ . }}</span><span class="stat-label">Stars</span></div>{{ end }}
+                {{ with .Params.forks }}<div class="stat"><span class="stat-value">{{ . }}</span><span class="stat-label">Forks</span></div>{{ end }}
+            </div>
+            {{ end }}
+
+            {{ with .Params.tech }}
+            <div class="tech-stack">
+                <div class="tech-label">Built with</div>
+                <div class="tech-tags">{{ range . }}<span class="tech-tag">{{ . }}</span>{{ end }}</div>
+            </div>
+            {{ end }}
+
+            {{ if or .Params.github .Params.demo .Params.website .Params.docs }}
+            <div class="links">
+                {{ with .Params.github }}<a href="{{ . }}" class="link-btn" target="_blank"><svg viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>Source</a>{{ end }}
+                {{ with .Params.docs }}<a href="{{ . }}" class="link-btn"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>Details</a>{{ end }}
+                {{ with .Params.demo }}<a href="{{ . }}" class="link-btn primary" target="_blank"><svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>Demo</a>{{ end }}
+                {{ with .Params.website }}<a href="{{ . }}" class="link-btn primary" target="_blank"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>Website</a>{{ end }}
+            </div>
+            {{ end }}
+        </section>
+
+        {{ with .Params.images }}
+        {{ $count := len . }}
+        {{ $cols := "cols-2" }}
+        {{ if eq $count 1 }}{{ $cols = "cols-1" }}{{ else if eq $count 2 }}{{ $cols = "cols-2" }}{{ else if eq $count 3 }}{{ $cols = "cols-3" }}{{ else if eq $count 4 }}{{ $cols = "cols-4" }}{{ else if eq $count 5 }}{{ $cols = "cols-5" }}{{ else if eq $count 6 }}{{ $cols = "cols-6" }}{{ else if eq $count 7 }}{{ $cols = "cols-7" }}{{ else if ge $count 8 }}{{ $cols = "cols-8" }}{{ end }}
+        <div class="image-collage {{ $cols }}">
+            {{ range . }}
+            <figure><img src="{{ . }}" alt="{{ $.Title }}"></figure>
             {{ end }}
         </div>
-    </section>
+        {{ else }}
+        {{ with .Params.image }}
+        <figure class="featured-image">
+            <img src="{{ . }}" alt="{{ $.Title }}">
+        </figure>
+        {{ end }}
+        {{ end }}
 
-    <section class="single-content">
-        <div class="single-container">
-            <article class="single-article">
-                {{ .Content }}
-            </article>
-        </div>
-    </section>
-</main>
+        {{ with .Params.logo }}
+        <figure class="logo-image">
+            <img src="{{ . }}" alt="{{ $.Title }}">
+        </figure>
+        {{ end }}
 
-<style>
-    body {
-        background: #0d1117;
-        color: #c9d1d9;
-        font-family: 'Inter', sans-serif;
+        {{ if .Content }}
+        <article class="article-content">
+            {{ .Content }}
+        </article>
+        {{ end }}
+    </div>
+
+    <nav class="back-nav">
+        <a href="/projects/" class="back-link">back to projects</a>
+    </nav>
+</div>
+
+<div class="lightbox" id="lightbox">
+    <span class="lightbox-close">&times;</span>
+    <img src="" alt="">
+</div>
+
+<script>
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = lightbox.querySelector('img');
+    document.querySelectorAll('.image-collage img, .featured-image img').forEach(img => {
+        img.addEventListener('click', () => {
+            lightboxImg.src = img.src;
+            lightbox.classList.add('active');
+        });
+    });
+    lightbox.addEventListener('click', () => lightbox.classList.remove('active'));
+
+    const article = document.querySelector('.article-content');
+    if (article) {
+        const children = Array.from(article.children);
+        let currentCard = null;
+        const fragment = document.createDocumentFragment();
+        children.forEach(el => {
+            if (el.tagName === 'H2') {
+                currentCard = document.createElement('div');
+                currentCard.className = 'section-card';
+                currentCard.appendChild(el);
+                fragment.appendChild(currentCard);
+            } else if (currentCard) {
+                currentCard.appendChild(el);
+            } else {
+                fragment.appendChild(el);
+            }
+        });
+        article.innerHTML = '';
+        article.appendChild(fragment);
     }
-
-    .single-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem;
-    }
-
-    .single-article {
-        background: #161b22;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        line-height: 1.8;
-    }
-
-    .single-article h1, 
-    .single-article h2, 
-    .single-article h3 {
-        color: #58a6ff;
-        margin-top: 1.5rem;
-    }
-
-    .single-article ul {
-        padding-left: 1.5rem;
-    }
-
-    .single-article li {
-        margin-bottom: 0.5rem;
-    }
-
-    .hero {
-        text-align: center;
-        padding: 2rem 1rem;
-    }
-
-    .hero-content h1 {
-        font-size: 2.5rem;
-        color: #58a6ff;
-        margin-bottom: 1rem;
-    }
-
-    .hero-content p {
-        color: #8b949e;
-        font-size: 1.1rem;
-    }
-
-    a {
-        color: #58a6ff;
-        text-decoration: none;
-    }
-
-    a:hover {
-        text-decoration: underline;
-    }
-
-    @media(max-width: 600px) {
-        .single-article {
-            padding: 1rem;
-        }
-
-        .hero-content h1 {
-            font-size: 2rem;
-        }
-    }
-</style>
+</script>
+</body>
+</html>

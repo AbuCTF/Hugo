@@ -2,7 +2,7 @@ baseURL = 'https://www.abu.rocks/'
 languageCode = 'en-us'
 title = 'Abu'
 
-canonifyURLs = true
+canonifyURLs = false
 enableRobotsTXT = true
 enableGitInfo = true
 
