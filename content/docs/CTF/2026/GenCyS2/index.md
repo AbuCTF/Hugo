@@ -62,8 +62,7 @@ curl -s -b cj.txt https://gencysctf.com/api/v1/challenges | jq -r \
 
 Two things stood out. First, **not a single challenge shipped a file through CTFd**: no attachments, no connection info. Everything lived on the live `thesecuretrust.com` infrastructure and you had to go find it. Second, the organizers leaned hard into that on Discord:
 
-> Do not treat this as a scripted exercise. Real-world adversaries do not brute-force blind namespaces with generic wordlists; reconnaissance is your primary weapon. Perimeter compromise hinges on OSINT, artifact analysis, and tactical surface mapping.
-> GKS [HTB]
+{{< figure src="discord-recon.jpg" alt="GKS in the CTF Discord: reconnaissance is your primary weapon; perimeter compromise hinges on OSINT, artifact analysis, and tactical surface mapping" >}}
 
 Someone put it more bluntly: *"basically u have to do OSINT search for challs based on the description, assume it's xyz chall from CTFd, check and scope it out."* Half the game was figuring out where a challenge even was.
 
@@ -334,8 +333,7 @@ Both submitted, both `correct`, +400 points, and the scoreboard jumped me from 2
 
 Around 6:54 PM, barely an hour before close, the organizers dropped what they called *"The Mega Jackpot"* on Discord:
 
-> Recent updates to the Service Desk platform have unintentionally exposed internal backup files (`/backup`) to the public internet ... reused or weak credentials may provide a path deeper into the SecureTrust infrastructure.
-> Backup: https://servicedesk.thesecuretrust.com/backup
+{{< figure src="discord-jackpot.jpg" alt="GKS in the CTF Discord: The Mega Jackpot - Credentials, pointing at the exposed /backup on servicedesk with reused creds for git.staging and secops" >}}
 
 One `curl` and you're staring at a wall of harvested creds:
 
