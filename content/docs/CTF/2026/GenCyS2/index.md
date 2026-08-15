@@ -1,6 +1,6 @@
 ---
 title: "GenCyS CTF 2.0"
-description: "SecureTrust Bank"
+description: "Shadow Clone"
 icon: "article"
 date: "2026-08-15"
 lastmod: "2026-08-15"
