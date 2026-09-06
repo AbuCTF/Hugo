@@ -691,6 +691,21 @@ UST_GenCyS_CTF{d0ma1n_4dm1n_via_ADCS_ESC1_n0_g0ld3n_t1ck3t}
 
 There's a second road baked in: a vulnerable ADCS template `MedCoreWebEnrollment` (`ENROLLEE_SUPPLIES_SUBJECT`, no manager approval), plain ESC1, which the flag name references. `certipy req … -template MedCoreWebEnrollment -upn ctfadmin@medcore.health` lands the same DA. Either works; we took delegation.
 
+#### MediClaim Systems
+
+The second AD box, and nothing like MedCore. The description points at a `ctf.local` domain, but `mediclaim.thesecuretrust.com` (`20.44.52.97`) is only a static gateway page advertising the internals: a domain controller at `172.20.0.10`, a member server at `172.20.0.20`, MSSQL on `1433`, and Openfire on `9090`. All of it lives on that internal `172.20.0.x` segment. From outside, only port 80 answers:
+
+```text
+80/tcp   open      http
+1433/tcp filtered  ms-sql-s
+9090/tcp filtered  http (Openfire)
+5222/tcp filtered  xmpp-client
+389/tcp  closed    ldap
+5985/tcp closed    wsman
+```
+
+The intended chain reads off the page: reach the internal net, then Openfire on 9090 (CVE-2023-32315, the console auth bypass) into a malicious-plugin RCE, or an MSSQL login on 1433 into `xp_cmdshell`, and from that foothold enumerate and escalate on `ctf.local`. We staged both, an Openfire plugin and an MSSQL credential spray, but every internal port is firewalled from our vantage, so we never reached a service to begin. This one is blocked on a network pivot we did not have, not on the AD attack itself.
+
 ### Kubernetes
 
 #### ClusterFall
@@ -1070,6 +1085,10 @@ ROT13 : UST_GenCyS_CTF{20db1716653b42b4e66442c1dcb11860}
 UST_GenCyS_CTF{20db1716653b42b4e66442c1dcb11860}
 ```
 
+#### MediSure Silent Reconciliation
+
+Fully mapped, blocked on another challenge. `telemetry-gateway:8080` runs an `MSTP/3-AES-CBC` telemetry protocol: `/attestation` hands out a per-request nonce, and `/telemetry` expects a signed frame in return. The valid frame format and its AES key live inside the encrypted firmware `medisure_sensor_update.bin`, which is the exact id52 Leakage artifact we could not crack. Solve id52 and this one falls with it.
+
 ### API Security
 
 #### MediConnect Endpoints
@@ -1115,6 +1134,16 @@ There's also a JWT `alg:none` forgery that flips `/admin/analytics` and `/admin/
 ```
 UST_GenCyS_CTF{mediconnect_endpoints_dynamic_flag}
 ```
+
+#### MediClaim Package
+
+The other challenge on the same MediConnect API surface. We mapped every route, brute-forced the JWT signing secret against a wordlist, and pulled a leaked RSA private key off the box, but never chained those into this challenge's own flag. A partial we did not circle back to.
+
+### AI Security
+
+#### HealthShield AI Claims Assistant
+
+A RAG support chatbot, Ava, at `assistant.thesecuretrust.com`, posting to `/api/chat`. The intended solve is a prompt-injection or broken-access leak of a restricted document, but the wall sits earlier than the model. The chat is authenticated, there is no registration endpoint (`/api/register` and its variants all return 404), and a five-user by three-thousand-password spray of `/api/login` never landed, nor did the OSINT employee names against the cracked `Orchid27`. Without a session, `/api/chat` returns `{"error":"Unauthorized. Please log in first."}`, so we never reached the model to attempt the injection at all.
 
 ### The Git Leak
 
@@ -1694,6 +1723,12 @@ cat maintenance_notes.txt
 
 The last step is where it stalls: `flag.txt` in the finance share is owned by `maintenance` and only readable via that SSH shell, and `:2222` is firewalled from our source IP because an earlier full-port scan tripped the box's scan-ban. We re-verified it filtered from every vantage we controlled. The flag sits behind that SSH shell, reachable with one `ssh` from a clean IP, which is what scored it; our own vantage was burned. Targeted scans only.
 
+### Cloud Security
+
+#### ClaimDrop
+
+The exposed insurance archive, and the box that quietly funded the whole run. `claimdrop836629...web.core.windows.net` is an Azure static site whose indexed `.git` directory is world-readable, and that `.git` is where `credentials.env` came from, the `gituser` credential that unlocked the entire Gitea org. Reading `.git/index` lists the real prize files (`hsm_master_key.bin`, `audit_verbose.log`, `shadow_passwords.bak`), but the blobs themselves return `403` and the container listing is hidden, so ClaimDrop's own flag stayed out of reach even though its leak carried everything else.
+
 ### Dead Ends
 
 A few of these boxes we took completely apart and still walked away empty. Not for lack of reversing, but because the piece that actually mints the flag was never shipped in the package. They scored nothing, so none of this counts toward the total above. Here is how far each one got.
@@ -1784,20 +1819,8 @@ The second config, keyed at `0xb200`, is the obvious decoy: `decoy-c2-01.securet
 
 The through-line on all four is the same one from the buffer overflow: the analysis is right, but the flag-bearing artifact, a seed, a guard binary, a real KDF, a live C2, was never deployed. Every one still shows zero solves globally.
 
-### Missed and Blocked
+### Loose Ends
 
-Past the Dead Ends, a handful of boxes we reached and started on but never closed, plus two we never even located. Recording them because most were partials, not walls.
-
-**MediClaim Systems (id62, Active Directory, 500).** The second AD box, at `20.44.52.97`. Domain Admin on MedCore gave us an `evil-winrm` shell as `ctfadmin` to pivot from, and we probed the box's ports and web from there, but we never landed inside its own forest to read the flag. We had a formula-derived candidate and left it unverified.
-
-**MediClaim Package (id76, API, 250).** The same MediConnect API surface as the box we did solve. We mapped every route, brute-forced the JWT signing secret, and pulled a leaked RSA private key off it, but never turned that into this challenge's specific flag.
-
-**ClaimDrop (id85, Cloud, 100).** This is the box whose exposed Azure static site and indexed `.git` handed us `credentials.env`, the credential that unlocked the whole Gitea org and half the finals. We read the `.git` index (`hsm_master_key.bin`, `audit_verbose.log`, `shadow_passwords.bak`), but the archive blobs themselves return `403` and the container listing is hidden, so ClaimDrop's own flag stayed out of reach even though its leak carried the run.
-
-**AI Claims Assistant (id65, AI Security, 250).** The RAG chatbot. We probed it as `dmercer`, `admin`, and a handful of staff identities looking for a broken-access or prompt leak, but only ever produced a formula candidate, never a real document leak.
-
-**MediSure Silent Reconciliation (id78, IoT, 250).** Fully mapped: `telemetry-gateway:8080`, a `MSTP/3-AES-CBC` telemetry protocol with `/attestation` and `/telemetry`. It is blocked on another challenge: the valid frame and its AES key live in the encrypted firmware `medisure_sensor_update.bin`, which is the exact id52 Leakage artifact we could not crack. Solve id52 and this one falls with it.
-
-**MediSure Claims (id43, Boot2Root, 500)** and **HealthShield Metadata (id70, Network, 100).** The two we never located. No recon dir, no host mapped. They simply did not get looked at before time ran out.
+Two boxes we never located: **MediSure Claims** (id43, Boot2Root) and **HealthShield Metadata** (id70, Network). No host mapped, no recon dir. They did not get looked at before time ran out.
 
 **On forging.** The unintended scoring-backend colocation from ClusterFall meant we were holding the HMAC secret that mints flags. For every box we could not crack, id62 and id65 among them, we could compute a formula-derived value that would score. We submitted none of them. A flag pulled from the scoring secret is not a solve, so those candidates stayed excluded, and every counted flag here came from popping its box.
