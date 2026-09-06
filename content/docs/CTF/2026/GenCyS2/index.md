@@ -1783,3 +1783,21 @@ So the signature layer is fully broken and validated. The encryption layer is wh
 The second config, keyed at `0xb200`, is the obvious decoy: `decoy-c2-01.securetrust-update.com`, `CAMP-DECOY-77`, `VICT-DECOY-0000`, only 1,000 PBKDF2 iterations. Both paths get followed to the end, and both dead-end. The stage-1 binary turns out to be an explicit CTF simulator whose only drop is the fixed 18-byte stub `ST-SIM-STAGE2-STUB`, and the supplied `suspicious_file.bin` just prints the recovered identifiers and sleeps, with no crypto or exfil left to reverse. The one flag-shaped value on the intended path is a planted `ledger_token` that was already rejected as a decoy back in the legacy version of this challenge.
 
 The through-line on all four is the same one from the buffer overflow: the analysis is right, but the flag-bearing artifact, a seed, a guard binary, a real KDF, a live C2, was never deployed. Every one still shows zero solves globally.
+
+### Missed and Blocked
+
+Past the Dead Ends, a handful of boxes we reached and started on but never closed, plus two we never even located. Recording them because most were partials, not walls.
+
+**MediClaim Systems (id62, Active Directory, 500).** The second AD box, at `20.44.52.97`. Domain Admin on MedCore gave us an `evil-winrm` shell as `ctfadmin` to pivot from, and we probed the box's ports and web from there, but we never landed inside its own forest to read the flag. We had a formula-derived candidate and left it unverified.
+
+**MediClaim Package (id76, API, 250).** The same MediConnect API surface as the box we did solve. We mapped every route, brute-forced the JWT signing secret, and pulled a leaked RSA private key off it, but never turned that into this challenge's specific flag.
+
+**ClaimDrop (id85, Cloud, 100).** This is the box whose exposed Azure static site and indexed `.git` handed us `credentials.env`, the credential that unlocked the whole Gitea org and half the finals. We read the `.git` index (`hsm_master_key.bin`, `audit_verbose.log`, `shadow_passwords.bak`), but the archive blobs themselves return `403` and the container listing is hidden, so ClaimDrop's own flag stayed out of reach even though its leak carried the run.
+
+**AI Claims Assistant (id65, AI Security, 250).** The RAG chatbot. We probed it as `dmercer`, `admin`, and a handful of staff identities looking for a broken-access or prompt leak, but only ever produced a formula candidate, never a real document leak.
+
+**MediSure Silent Reconciliation (id78, IoT, 250).** Fully mapped: `telemetry-gateway:8080`, a `MSTP/3-AES-CBC` telemetry protocol with `/attestation` and `/telemetry`. It is blocked on another challenge: the valid frame and its AES key live in the encrypted firmware `medisure_sensor_update.bin`, which is the exact id52 Leakage artifact we could not crack. Solve id52 and this one falls with it.
+
+**MediSure Claims (id43, Boot2Root, 500)** and **HealthShield Metadata (id70, Network, 100).** The two we never located. No recon dir, no host mapped. They simply did not get looked at before time ran out.
+
+**On forging.** The unintended scoring-backend colocation from ClusterFall meant we were holding the HMAC secret that mints flags. For every box we could not crack, id62 and id65 among them, we could compute a formula-derived value that would score. We submitted none of them. A flag pulled from the scoring secret is not a solve, so those candidates stayed excluded, and every counted flag here came from popping its box.
