@@ -522,7 +522,7 @@ The finals ran the same way the quals did: no files and no connection info throu
 
 One hard rule up front: don't `nmap -p-` these boxes. A full-port scan trips an automatic ban that firewalls the good ports (SSH, SMB) for your IP, and there's no undoing it. We found that out on `connections`, where it firewalled our own vantage off the box.
 
-**Points: 9050 (+500)**
+**Points: 9550**
 
 ### Recon
 
