@@ -1569,7 +1569,7 @@ Once we had cluster-admin on ClusterFall, we walked every namespace expecting lo
 
 #### The scoring backend in the same cluster
 
-The service that mints flags was running inside the same cluster we were told to root, and cluster-admin reads everything, so we ended up looking straight at it. That is an unintended colocation; a scoring service should never be reachable from a challenge box. We confirmed it was real, filed it as an infra bug, and left it completely alone, because minting flags from the scoring secret is not solving a CTF. Every flag here came from popping its box, and out of the same respect the secret's value is not printed. ClusterFall was later pulled from the platform entirely.
+The funny one. The service that mints flags was running inside the same cluster we were told to root, and cluster-admin reads everything, so we ended up staring straight at the machinery itself. That is an unintended colocation; a scoring service should never be reachable from a challenge box. It also meant that with the HMAC secret in hand we could have minted a scoring value for any box we could not crack. We left it alone, filed it as an infra bug, and did not print the secret; every flag here came from popping its box. ClusterFall was later pulled from the platform entirely.
 
 #### The build scripts on the domain controller
 
@@ -1819,5 +1819,3 @@ The exposed insurance archive, and the box that quietly funded the whole run.
 `claimdrop836629...web.core.windows.net` is an Azure static site whose indexed `.git` directory is world-readable, and that `.git` is where `credentials.env` came from, the `gituser` credential that unlocked the entire Gitea org. Reading `.git/index` lists the prize files (`hsm_master_key.bin`, `audit_verbose.log`, `shadow_passwords.bak`), but the blobs themselves return `403` and the container listing is hidden, so ClaimDrop's own flag stayed out of reach even though its leak carried everything else.
 
 Two more we could not put on the map. **MediSure Claims** (id43, Boot2Root) is not a virtual host on any of the seven estate IPs, no MediSure or claims name we tried resolves to a dedicated origin the way `claims-app` does, and crt.sh lists only the wildcard-covered quals names. With zero global solves it looks like a per-team instance that was never stood up, the same shape as the buffer overflow host, rather than a box we skipped. **HealthShield Metadata** (id70, Network) we never scoped at all.
-
-**On forging.** The unintended scoring-backend colocation from ClusterFall meant we were holding the HMAC secret that mints flags. For every box we could not crack, id62 and id65 among them, we could compute a formula-derived value that would score. We submitted none of them. A flag pulled from the scoring secret is not a solve, so those candidates stayed excluded, and every counted flag here came from popping its box.
