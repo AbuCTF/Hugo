@@ -1214,21 +1214,19 @@ Stage 6 Passed: Logging and cryptography validated (3 tests)
 ALL PIPELINE GATES PASSED
 ```
 
-The minted release carries the flag in `release.txt`:
+That mints the flag into `release.txt`, but there is a shortcut the challenge later confirmed with a hint: the flag was left hardcoded in the committed `pipeline/run.sh` itself. Clone the repo with the leaked `gituser` credential and read it straight out of git history, no remediation required:
 
 ```bash
-unzip -p release/HealthShield-Release.zip release.txt
+git clone https://git.thesecuretrust.com/healthshield-group/fix-the-portal-devsecops.git
+grep FLAG_VALUE fix-the-portal-devsecops/pipeline/run.sh
 ```
 
 ```text
-UST_GenCyS_CTF{01530ffa611c3b977f885d3d4d31f6ed}
-Security Compliance Score: 100%
-Compliance Token: cc5ec939d729e674e765b2b39c3b24add840371b9d56c30fc6f0df14ec52bd59
-RELEASE_FLAG: UST_GenCyS_CTF{01530ffa611c3b977f885d3d4d31f6ed}
+FLAG_VALUE="UST_GenCyS_CTF{f1x_th3_p0rt4l_s4st_p1p3l1n3_pwn3d_2026}"
 ```
 
 ```
-UST_GenCyS_CTF{01530ffa611c3b977f885d3d4d31f6ed}
+UST_GenCyS_CTF{f1x_th3_p0rt4l_s4st_p1p3l1n3_pwn3d_2026}
 ```
 
 #### Race to Riches
