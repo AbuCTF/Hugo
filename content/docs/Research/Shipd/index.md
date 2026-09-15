@@ -171,7 +171,7 @@ there are tiers of solving agents. practically:
 - **Orion** is another tier in the mix.
 - **Vega** is the strongest, used as the feasibility check - if Orion can solve it, the challenge is provably solvable.
 
-what they run underneath isn't officially documented - from what people have pieced together, nova looks like it's running `gemini-cli`, and the others are probably running the claude models. treat that as community guesswork, not gospel. **what actually matters is the bar, not the model.**
+what they run underneath isn't officially documented - from what people have pieced together, nova looks like it's running `gemini-cli`, and the others are probably running proprietary models. treat that as community guesswork, not gospel. **what actually matters is the bar, not the model.**
 
 **the difficulty bar (this is the whole game):**
 
